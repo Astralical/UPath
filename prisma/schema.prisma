@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -83,20 +83,31 @@ model StudentTeacher {
 }
 
 model University {
-  id             String   @id @default(cuid())
-  name           String
-  nameZh         String?
-  country        String
-  city           String?
-  website        String?
-  logo           String?
-  description    String?
-  type           String?
-  foundedYear    Int?
-  studentCount   Int?
-  acceptanceRate Float?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                    String   @id @default(cuid())
+  name                  String
+  nameZh                String?
+  country               String
+  city                  String?
+  state                 String?
+  website               String?
+  logo                  String?
+  description           String?
+  type                  String?
+  foundedYear           Int?
+  studentCount          Int?
+  acceptanceRate        Float?
+  avgSAT                Int?
+  avgACT                Int?
+  avgIELTS              Float?
+  avgTOEFL              Int?
+  avgGPA                Float?
+  tuitionDomestic       Float?
+  tuitionInternational  Float?
+  livingCost            Float?
+  applicationProcess    String?
+  applicationDeadlines  String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   majors              Major[]
   rankings            Ranking[]

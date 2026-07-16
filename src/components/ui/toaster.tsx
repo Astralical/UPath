@@ -67,7 +67,7 @@ export function Toaster() {
                 {t.description && <p className="text-sm text-gray-600 mt-1">{t.description}</p>}
               </div>
               <button onClick={() => dismiss(t.id)} className="text-gray-400 hover:text-gray-600 shrink-0">
-                ✕
+                x
               </button>
             </div>
           </div>

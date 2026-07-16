@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +36,8 @@ function formatSize(bytes: number): string {
 }
 
 export default function DrivePage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<any[]>([]);
@@ -56,6 +58,11 @@ export default function DrivePage() {
   }, [currentFolder]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  if (status === "loading") {
+    return <div className="flex items-center justify-center min-h-[50vh]"><p className="text-gray-500">Loading...</p></div>;
+  }
+  if (status === "unauthenticated") { router.push("/login"); return null; }
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

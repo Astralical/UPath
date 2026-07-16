@@ -23,27 +23,36 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useLang } from "@/lib/LanguageContext";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
-const navigation = [
-  { name: "工作台", href: "/dashboard", icon: LayoutDashboard, roles: ["ADMIN", "TEACHER", "STUDENT"] },
-  { name: "大学搜索", href: "/universities", icon: Search, roles: ["ADMIN", "TEACHER", "STUDENT"] },
-  { name: "文书工作区", href: "/workspace", icon: FileText, roles: ["ADMIN", "TEACHER", "STUDENT"] },
-  { name: "申请日历", href: "/calendar", icon: Calendar, roles: ["ADMIN", "TEACHER", "STUDENT"] },
-  { name: "文件管理", href: "/drive", icon: FolderOpen, roles: ["ADMIN", "TEACHER", "STUDENT"] },
-  { name: "考试练习", href: "/practice", icon: BookOpen, roles: ["ADMIN", "TEACHER", "STUDENT"] },
-  { name: "作业管理", href: "/assignments", icon: ClipboardList, roles: ["TEACHER", "STUDENT"] },
-  { name: "消息中心", href: "/messages", icon: MessageSquare, roles: ["ADMIN", "TEACHER", "STUDENT"] },
-  { name: "用户管理", href: "/admin/users", icon: Users, roles: ["ADMIN"] },
-  { name: "系统设置", href: "/admin/settings", icon: Settings, roles: ["ADMIN"] },
+const navKeys = [
+  { key: "nav.dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["ADMIN", "TEACHER", "STUDENT"] },
+  { key: "nav.universities", href: "/universities", icon: Search, roles: ["ADMIN", "TEACHER", "STUDENT"] },
+  { key: "nav.workspace", href: "/workspace", icon: FileText, roles: ["ADMIN", "TEACHER", "STUDENT"] },
+  { key: "nav.calendar", href: "/calendar", icon: Calendar, roles: ["ADMIN", "TEACHER", "STUDENT"] },
+  { key: "nav.drive", href: "/drive", icon: FolderOpen, roles: ["ADMIN", "TEACHER", "STUDENT"] },
+  { key: "nav.practice", href: "/practice", icon: BookOpen, roles: ["ADMIN", "TEACHER", "STUDENT"] },
+  { key: "nav.assignments", href: "/assignments", icon: ClipboardList, roles: ["TEACHER", "STUDENT"] },
+  { key: "nav.messages", href: "/messages", icon: MessageSquare, roles: ["ADMIN", "TEACHER", "STUDENT"] },
+  { key: "nav.adminUsers", href: "/admin/users", icon: Users, roles: ["ADMIN"] },
+  { key: "nav.adminSettings", href: "/admin/settings", icon: Settings, roles: ["ADMIN"] },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { t } = useLang();
 
   const userRole = (session?.user as any)?.role || "STUDENT";
-  const filteredNav = navigation.filter((item) => item.roles.includes(userRole));
+  const filteredNav = navKeys.filter((item) => item.roles.includes(userRole));
+
+  const roleLabels: Record<string, string> = {
+    ADMIN: "admin.roleAdmin",
+    TEACHER: "admin.roleTeacher",
+    STUDENT: "admin.roleStudent",
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -81,7 +90,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{session?.user?.name}</p>
-                <p className="text-xs text-gray-500 truncate">{userRole === "ADMIN" ? "管理员" : userRole === "TEACHER" ? "老师" : "学生"}</p>
+                <p className="text-xs text-gray-500 truncate">{t(roleLabels[userRole] || "admin.roleStudent")}</p>
               </div>
               <button onClick={() => signOut({ callbackUrl: "/" })} className="text-gray-400 hover:text-gray-600">
                 <LogOut className="h-4 w-4" />
@@ -100,6 +109,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Menu className="h-6 w-6" />
             </button>
             <div className="flex items-center gap-4 ml-auto">
+              <LanguageSwitcher />
               <button className="relative text-gray-400 hover:text-gray-600">
                 <Bell className="h-5 w-5" />
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
@@ -120,7 +130,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   );
 }
 
-function SidebarNav({ items, pathname }: { items: typeof navigation; pathname: string }) {
+function SidebarNav({ items, pathname }: { items: typeof navKeys; pathname: string }) {
+  const { t } = useLang();
   return (
     <nav className="flex-1 overflow-y-auto p-4 space-y-1">
       {items.map((item) => {
@@ -137,7 +148,7 @@ function SidebarNav({ items, pathname }: { items: typeof navigation; pathname: s
             )}
           >
             <item.icon className="h-5 w-5 shrink-0" />
-            {item.name}
+            {t(item.key)}
           </Link>
         );
       })}

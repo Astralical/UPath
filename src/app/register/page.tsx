@@ -9,9 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GraduationCap } from "lucide-react";
+import { useLang } from "@/lib/LanguageContext";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { t } = useLang();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,36 +25,17 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password, role }),
     });
-
     const data = await res.json();
-
-    if (!res.ok) {
-      setError(data.error || "注册失败");
-      setLoading(false);
-      return;
-    }
-
-    // Auto sign in
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-
+    if (!res.ok) { setError(data.error || t("auth.registerFailed")); setLoading(false); return; }
+    const result = await signIn("credentials", { email, password, redirect: false });
     setLoading(false);
-
-    if (result?.error) {
-      setError(result.error);
-    } else {
-      router.push("/dashboard");
-      router.refresh();
-    }
+    if (result?.error) { setError(result.error); }
+    else { router.push("/dashboard"); router.refresh(); }
   };
 
   return (
@@ -64,85 +47,38 @@ export default function RegisterPage() {
               <GraduationCap className="h-7 w-7 text-primary-600" />
             </div>
           </div>
-          <CardTitle className="text-2xl">注册 UPath</CardTitle>
-          <CardDescription>创建你的账号，开始升学之旅</CardDescription>
+          <CardTitle className="text-2xl">{t("auth.registerTitle")}</CardTitle>
+          <CardDescription>{t("auth.registerSubtitle")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
-                {error}
-              </div>
-            )}
+            {error && <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">{error}</div>}
             <div className="space-y-2">
-              <Label htmlFor="name">姓名</Label>
-              <Input
-                id="name"
-                placeholder="你的姓名"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
+              <Label htmlFor="name">{t("auth.name")}</Label>
+              <Input id="name" placeholder={t("auth.namePlaceholder")} value={name} onChange={(e) => setName(e.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">邮箱</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <Label htmlFor="email">{t("auth.email")}</Label>
+              <Input id="email" type="email" placeholder={t("auth.emailPlaceholder")} value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">密码</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="至少6个字符"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
+              <Label htmlFor="password">{t("auth.password")}</Label>
+              <Input id="password" type="password" placeholder={t("auth.passwordPlaceholder")} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
             </div>
             <div className="space-y-2">
-              <Label>角色</Label>
+              <Label>{t("auth.role")}</Label>
               <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setRole("STUDENT")}
-                  className={`flex-1 p-3 rounded-lg border-2 text-sm font-medium transition-all ${
-                    role === "STUDENT"
-                      ? "border-primary-500 bg-primary-50 text-primary-700"
-                      : "border-gray-200 text-gray-600 hover:border-gray-300"
-                  }`}
-                >
-                  🎓 学生
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole("TEACHER")}
-                  className={`flex-1 p-3 rounded-lg border-2 text-sm font-medium transition-all ${
-                    role === "TEACHER"
-                      ? "border-primary-500 bg-primary-50 text-primary-700"
-                      : "border-gray-200 text-gray-600 hover:border-gray-300"
-                  }`}
-                >
-                  👩‍🏫 老师
-                </button>
+                <button type="button" onClick={() => setRole("STUDENT")} className={"flex-1 p-3 rounded-lg border-2 text-sm font-medium transition-all " + (role === "STUDENT" ? "border-primary-500 bg-primary-50 text-primary-700" : "border-gray-200 text-gray-600 hover:border-gray-300")}>{t("auth.student")}</button>
+                <button type="button" onClick={() => setRole("TEACHER")} className={"flex-1 p-3 rounded-lg border-2 text-sm font-medium transition-all " + (role === "TEACHER" ? "border-primary-500 bg-primary-50 text-primary-700" : "border-gray-200 text-gray-600 hover:border-gray-300")}>{t("auth.teacher")}</button>
               </div>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "注册中..." : "创建账号"}
+              {loading ? t("auth.signingUp") : t("common.register")}
             </Button>
           </form>
           <div className="mt-4 text-center text-sm text-gray-600">
-            已有账号？{" "}
-            <Link href="/login" className="text-primary-600 hover:underline font-medium">
-              立即登录
-            </Link>
+            {t("auth.hasAccount")}{" "}
+            <Link href="/register" className="text-primary-600 hover:underline font-medium">{t("auth.loginLink")}</Link>
           </div>
         </CardContent>
       </Card>

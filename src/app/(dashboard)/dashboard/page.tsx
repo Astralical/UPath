@@ -194,7 +194,7 @@ export default async function DashboardPage() {
           <CardContent>
             {userRole === "STUDENT" ? (
               pendingAssignments.length === 0 ? (
-                <p className="text-sm text-gray-500 py-8 text-center">暂无待完成作业 🎉</p>
+                <p className="text-sm text-gray-500 py-8 text-center">暂无待完成作业</p>
               ) : (
                 <div className="space-y-3">
                   {pendingAssignments.map((a: any) => (

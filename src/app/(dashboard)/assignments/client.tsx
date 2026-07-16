@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +21,8 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function AssignmentsClient({ role }: { role: string }) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const { toast } = useToast();
   const [assignments, setAssignments] = useState<any[]>([]);
   const [submissions, setSubmissions] = useState<any[]>([]);
@@ -44,6 +46,11 @@ export default function AssignmentsClient({ role }: { role: string }) {
   }, [role]);
 
   useEffect(() => { fetchAssignments(); }, [fetchAssignments]);
+
+  if (status === "loading") {
+    return <div className="flex items-center justify-center min-h-[50vh]"><p className="text-gray-500">Loading...</p></div>;
+  }
+  if (status === "unauthenticated") { router.push("/login"); return null; }
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -228,7 +235,7 @@ export default function AssignmentsClient({ role }: { role: string }) {
                   {/* Submission feedback */}
                   {submission?.feedback && (
                     <div className="mt-3 p-3 rounded-lg bg-blue-50 text-sm text-blue-800">
-                      💬 教师反馈: {submission.feedback}
+                      Teacher feedback: {submission.feedback}
                     </div>
                   )}
                 </CardContent>

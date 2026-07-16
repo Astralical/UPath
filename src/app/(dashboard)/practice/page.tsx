@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,10 +11,10 @@ import { BookOpen, Clock, Trophy, Brain, ChevronRight, ArrowLeft, CheckCircle, X
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
-  { id: "SAT", name: "SAT", color: "bg-blue-100 text-blue-800", icon: "📝" },
-  { id: "IELTS", name: "IELTS", color: "bg-green-100 text-green-800", icon: "🎯" },
-  { id: "TOEFL", name: "TOEFL", color: "bg-purple-100 text-purple-800", icon: "📚" },
-  { id: "ACT", name: "ACT", color: "bg-orange-100 text-orange-800", icon: "🎓" },
+  { id: "SAT", name: "SAT", color: "bg-blue-100 text-blue-800", icon: BookOpen },
+  { id: "IELTS", name: "IELTS", color: "bg-green-100 text-green-800", icon: BookOpen },
+  { id: "TOEFL", name: "TOEFL", color: "bg-purple-100 text-purple-800", icon: BookOpen },
+  { id: "ACT", name: "ACT", color: "bg-orange-100 text-orange-800", icon: BookOpen },
 ];
 
 interface Question {
@@ -30,7 +31,8 @@ interface Question {
 }
 
 export default function PracticePage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const { toast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -46,6 +48,11 @@ export default function PracticePage() {
   }, []);
 
   useEffect(() => { fetchAttempts(); }, [fetchAttempts]);
+
+  if (status === "loading") {
+    return <div className="flex items-center justify-center min-h-[50vh]"><p className="text-gray-500">Loading...</p></div>;
+  }
+  if (status === "unauthenticated") { router.push("/login"); return null; }
 
   const startQuiz = async (categoryId: string) => {
     setLoading(true);
@@ -114,7 +121,7 @@ export default function PracticePage() {
               onClick={() => startQuiz(cat.id)}
             >
               <CardContent className="p-6 text-center">
-                <div className="text-4xl mb-3">{cat.icon}</div>
+                <cat.icon className="w-12 h-12 mx-auto text-primary-600" />
                 <h3 className="text-lg font-semibold mb-2">{cat.name}</h3>
                 <Badge className={cat.color}>开始练习</Badge>
               </CardContent>
@@ -204,7 +211,7 @@ export default function PracticePage() {
                       </div>
                       {q.explanation && (
                         <p className="text-xs text-gray-500 mt-2 bg-gray-50 p-2 rounded">
-                          💡 {q.explanation}
+                          {q.explanation}
                         </p>
                       )}
                     </div>

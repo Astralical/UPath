@@ -4,383 +4,209 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Seeding database...");
+  console.log("Seeding database...");
 
-  // Create admin user
+  // Users
   const adminPassword = await bcrypt.hash("admin123", 12);
-  const admin = await prisma.user.upsert({
-    where: { email: "admin@upath.com" },
-    update: {},
-    create: {
-      name: "系统管理员",
-      email: "admin@upath.com",
-      password: adminPassword,
-      role: "ADMIN",
-    },
-  });
-  console.log("✅ Admin user created:", admin.email);
-
-  // Create teacher
   const teacherPassword = await bcrypt.hash("teacher123", 12);
-  const teacher = await prisma.user.upsert({
-    where: { email: "teacher@upath.com" },
-    update: {},
-    create: {
-      name: "张老师",
-      email: "teacher@upath.com",
-      password: teacherPassword,
-      role: "TEACHER",
-      bio: "资深升学顾问，10年留学指导经验",
-    },
-  });
-  console.log("✅ Teacher created:", teacher.email);
-
-  // Create student
   const studentPassword = await bcrypt.hash("student123", 12);
-  const student = await prisma.user.upsert({
-    where: { email: "student@upath.com" },
-    update: {},
-    create: {
-      name: "小明",
-      email: "student@upath.com",
-      password: studentPassword,
-      role: "STUDENT",
-    },
-  });
-  console.log("✅ Student created:", student.email);
 
-  // Link student to teacher
-  await prisma.studentTeacher.upsert({
-    where: { studentId_teacherId: { studentId: student.id, teacherId: teacher.id } },
-    update: {},
-    create: { studentId: student.id, teacherId: teacher.id },
-  });
+  const admin = await prisma.user.upsert({ where: { email: "admin@upath.com" }, update: {}, create: { name: "System Admin", email: "admin@upath.com", password: adminPassword, role: "ADMIN" } });
+  const teacher = await prisma.user.upsert({ where: { email: "teacher@upath.com" }, update: {}, create: { name: "Zhang Laoshi", email: "teacher@upath.com", password: teacherPassword, role: "TEACHER", bio: "Senior admissions consultant with 10 years of experience." } });
+  const student = await prisma.user.upsert({ where: { email: "student@upath.com" }, update: {}, create: { name: "Xiao Ming", email: "student@upath.com", password: studentPassword, role: "STUDENT" } });
+  await prisma.studentTeacher.upsert({ where: { studentId_teacherId: { studentId: student.id, teacherId: teacher.id } }, update: {}, create: { studentId: student.id, teacherId: teacher.id } });
+  console.log("Users created");
 
-  // Create universities
+  // Comprehensive university data
   const universities = [
-    {
-      name: "Harvard University",
-      nameZh: "哈佛大学",
-      country: "United States",
-      city: "Cambridge",
-      website: "https://www.harvard.edu",
-      description: "哈佛大学是美国最古老的高等教育机构，位于马萨诸塞州剑桥市。它是常春藤联盟成员，以其卓越的学术研究和丰富的教育资源闻名于世。",
-      type: "private",
-      foundedYear: 1636,
-    },
-    {
-      name: "Massachusetts Institute of Technology",
-      nameZh: "麻省理工学院",
-      country: "United States",
-      city: "Cambridge",
-      website: "https://www.mit.edu",
-      description: "麻省理工学院是世界顶尖的科技研究型大学，以工程学、计算机科学和自然科学领域的卓越成就著称。",
-      type: "private",
-      foundedYear: 1861,
-    },
-    {
-      name: "Stanford University",
-      nameZh: "斯坦福大学",
-      country: "United States",
-      city: "Stanford",
-      website: "https://www.stanford.edu",
-      description: "斯坦福大学位于硅谷中心，以其创新精神和创业文化闻名，培养了众多科技行业的领军人物。",
-      type: "private",
-      foundedYear: 1885,
-    },
-    {
-      name: "University of Oxford",
-      nameZh: "牛津大学",
-      country: "United Kingdom",
-      city: "Oxford",
-      website: "https://www.ox.ac.uk",
-      description: "牛津大学是英语世界最古老的大学，以其卓越的教学质量和深厚的学术传统享誉全球。",
-      type: "public",
-      foundedYear: 1096,
-    },
-    {
-      name: "University of Cambridge",
-      nameZh: "剑桥大学",
-      country: "United Kingdom",
-      city: "Cambridge",
-      website: "https://www.cam.ac.uk",
-      description: "剑桥大学是世界顶尖的公立研究型大学，采用书院联邦制，培养了众多诺贝尔奖得主。",
-      type: "public",
-      foundedYear: 1209,
-    },
-    {
-      name: "Tsinghua University",
-      nameZh: "清华大学",
-      country: "China",
-      city: "Beijing",
-      website: "https://www.tsinghua.edu.cn",
-      description: "清华大学是中国最著名的高等学府之一，以工科见长，综合实力位居中国高校前列。",
-      type: "public",
-      foundedYear: 1911,
-    },
-    {
-      name: "Peking University",
-      nameZh: "北京大学",
-      country: "China",
-      city: "Beijing",
-      website: "https://www.pku.edu.cn",
-      description: "北京大学是中国近代第一所国立综合性大学，人文社科和自然科学并重，学术实力雄厚。",
-      type: "public",
-      foundedYear: 1898,
-    },
-    {
-      name: "University of Toronto",
-      nameZh: "多伦多大学",
-      country: "Canada",
-      city: "Toronto",
-      website: "https://www.utoronto.ca",
-      description: "多伦多大学是加拿大顶尖的公立研究型大学，在医学、工程和人文领域享有盛誉。",
-      type: "public",
-      foundedYear: 1827,
-    },
-    {
-      name: "University of Melbourne",
-      nameZh: "墨尔本大学",
-      country: "Australia",
-      city: "Melbourne",
-      website: "https://www.unimelb.edu.au",
-      description: "墨尔本大学是澳大利亚历史第二悠久的高等学府，学术研究和教学质量均位居世界前列。",
-      type: "public",
-      foundedYear: 1853,
-    },
-    {
-      name: "ETH Zurich",
-      nameZh: "苏黎世联邦理工学院",
-      country: "Switzerland",
-      city: "Zurich",
-      website: "https://www.ethz.ch",
-      description: "苏黎世联邦理工学院是世界领先的科技大学，以工程、自然科学和建筑学闻名于世。",
-      type: "public",
-      foundedYear: 1855,
-    },
+    { name: "Harvard University", nameZh: "哈佛大学", country: "United States", city: "Cambridge", state: "Massachusetts", website: "https://www.harvard.edu", description: "Harvard University is a private Ivy League research university in Cambridge, Massachusetts. Founded in 1636, it is the oldest institution of higher learning in the United States. Harvard is renowned for its academic excellence, influential alumni network, and substantial financial endowment.", type: "private", foundedYear: 1636, studentCount: 31000, acceptanceRate: 3.4, avgSAT: 1520, avgACT: 34, avgIELTS: 7.5, avgTOEFL: 104, avgGPA: 4.18, tuitionDomestic: 57261, tuitionInternational: 57261, livingCost: 19600, applicationProcess: "1. Submit Common Application or Coalition Application\n2. Harvard supplement essays\n3. SAT/ACT scores (optional for 2024-2026)\n4. Two teacher recommendations\n5. School report and counselor recommendation\n6. Mid-year report\n7. Interview (optional but recommended)", applicationDeadlines: "Early Action: November 1\nRegular Decision: January 1\nFinancial Aid: February 1" },
+    { name: "Massachusetts Institute of Technology", nameZh: "麻省理工学院", country: "United States", city: "Cambridge", state: "Massachusetts", website: "https://www.mit.edu", description: "MIT is a private land-grant research university specializing in science, engineering, and technology. Known for its cutting-edge research and innovation, MIT has produced numerous Nobel laureates, National Medal of Science recipients, and MacArthur Fellows.", type: "private", foundedYear: 1861, studentCount: 11934, acceptanceRate: 4.0, avgSAT: 1540, avgACT: 35, avgIELTS: 7.5, avgTOEFL: 100, avgGPA: 4.17, tuitionDomestic: 57986, tuitionInternational: 57986, livingCost: 18300, applicationProcess: "1. MIT application (not Common App)\n2. Essays and short answers\n3. SAT/ACT (required)\n4. Two teacher recommendations (math/science + humanities)\n5. Secondary School Report\n6. Interview (optional)", applicationDeadlines: "Early Action: November 1\nRegular Action: January 4" },
+    { name: "Stanford University", nameZh: "斯坦福大学", country: "United States", city: "Stanford", state: "California", website: "https://www.stanford.edu", description: "Stanford University is a private research university located in the heart of Silicon Valley. Known for its entrepreneurial spirit and academic strength across disciplines, Stanford has played a key role in the development of the technology industry.", type: "private", foundedYear: 1885, studentCount: 17300, acceptanceRate: 3.7, avgSAT: 1510, avgACT: 34, avgIELTS: 7.5, avgTOEFL: 105, avgGPA: 4.18, tuitionDomestic: 58416, tuitionInternational: 58416, livingCost: 19500, applicationProcess: "1. Common Application\n2. Stanford supplement essays\n3. SAT/ACT scores (optional)\n4. Two teacher recommendations\n5. Counselor recommendation\n6. School report", applicationDeadlines: "Restrictive Early Action: November 1\nRegular Decision: January 5" },
+    { name: "University of Oxford", nameZh: "牛津大学", country: "United Kingdom", city: "Oxford", website: "https://www.ox.ac.uk", description: "The University of Oxford is a collegiate research university and the oldest university in the English-speaking world. It is renowned for its tutorial system, world-class research output, and historic colleges.", type: "public", foundedYear: 1096, studentCount: 25500, acceptanceRate: 17.5, avgIELTS: 7.0, avgTOEFL: 100, avgGPA: 3.7, tuitionDomestic: 9250, tuitionInternational: 35080, livingCost: 14500, applicationProcess: "1. UCAS application\n2. Personal statement\n3. Academic reference\n4. Admissions test (subject-dependent)\n5. Interview (for shortlisted candidates)\n6. Written work submission", applicationDeadlines: "UCAS Deadline: October 15\nAdmissions Tests: October/November" },
+    { name: "University of Cambridge", nameZh: "剑桥大学", country: "United Kingdom", city: "Cambridge", website: "https://www.cam.ac.uk", description: "The University of Cambridge is a collegiate public research university and the second-oldest university in the English-speaking world. It is globally recognized for its academic excellence, research output, and historic collegiate system.", type: "public", foundedYear: 1209, studentCount: 24200, acceptanceRate: 21.0, avgIELTS: 7.0, avgTOEFL: 100, avgGPA: 3.7, tuitionDomestic: 9250, tuitionInternational: 33825, livingCost: 14000, applicationProcess: "1. UCAS application\n2. Personal statement\n3. Academic reference\n4. Admissions assessment\n5. Interview\n6. Written work (some courses)", applicationDeadlines: "UCAS Deadline: October 15\nPre-interview assessments: October" },
+    { name: "California Institute of Technology", nameZh: "加州理工学院", country: "United States", city: "Pasadena", state: "California", website: "https://www.caltech.edu", description: "Caltech is a private research university known for its strength in science and engineering. With a very small student body, it offers an exceptional student-to-faculty ratio and has produced numerous Nobel laureates.", type: "private", foundedYear: 1891, studentCount: 2400, acceptanceRate: 3.9, avgSAT: 1545, avgACT: 35, avgIELTS: 7.5, avgTOEFL: 105, avgGPA: 4.19, tuitionDomestic: 60864, tuitionInternational: 60864, livingCost: 18400, applicationProcess: "1. Common App or Coalition App\n2. Caltech supplement essays\n3. SAT/ACT scores\n4. Two teacher recommendations\n5. Secondary school report", applicationDeadlines: "Early Action: November 1\nRegular Decision: January 3" },
+    { name: "ETH Zurich", nameZh: "苏黎世联邦理工学院", country: "Switzerland", city: "Zurich", website: "https://www.ethz.ch", description: "ETH Zurich is a public research university specializing in science, technology, engineering, and mathematics. It is consistently ranked among the top universities in the world and has produced over 20 Nobel laureates, including Albert Einstein.", type: "public", foundedYear: 1855, studentCount: 24200, acceptanceRate: 27.0, avgSAT: 1450, avgIELTS: 7.0, avgTOEFL: 100, avgGPA: 3.6, tuitionDomestic: 1460, tuitionInternational: 1460, livingCost: 17000, applicationProcess: "1. Online application via ETH portal\n2. Language proficiency (German for BSc, English for MSc)\n3. Academic transcripts\n4. CV and motivation letter\n5. Entrance examination (for some programs)", applicationDeadlines: "Bachelor: April 30\nMaster: December 15 / March 31" },
+    { name: "Imperial College London", nameZh: "帝国理工学院", country: "United Kingdom", city: "London", website: "https://www.imperial.ac.uk", description: "Imperial College London is a public research university focused on science, engineering, medicine, and business. Located in South Kensington, it is consistently ranked among the world's top universities.", type: "public", foundedYear: 1907, studentCount: 20500, acceptanceRate: 14.3, avgIELTS: 6.5, avgTOEFL: 92, avgGPA: 3.6, tuitionDomestic: 9250, tuitionInternational: 35100, livingCost: 16000, applicationProcess: "1. UCAS application\n2. Personal statement\n3. Academic reference\n4. Admissions test (some courses)\n5. Interview (some courses)", applicationDeadlines: "UCAS Deadline: January 31 (Medicine: October 15)" },
+    { name: "University of Chicago", nameZh: "芝加哥大学", country: "United States", city: "Chicago", state: "Illinois", website: "https://www.uchicago.edu", description: "The University of Chicago is a private research university known for its rigorous academic programs, particularly in economics, law, and the sciences. It is associated with the Chicago School of Economics and numerous Nobel laureates.", type: "private", foundedYear: 1890, studentCount: 17200, acceptanceRate: 5.4, avgSAT: 1530, avgACT: 34, avgIELTS: 7.0, avgTOEFL: 104, avgGPA: 4.0, tuitionDomestic: 63900, tuitionInternational: 63900, livingCost: 18100, applicationProcess: "1. Common App or Coalition App\n2. UChicago supplement essays\n3. SAT/ACT (test-optional)\n4. Two teacher recommendations\n5. School report", applicationDeadlines: "Early Action: November 1\nEarly Decision I: November 1\nEarly Decision II: January 2\nRegular Decision: January 2" },
+    { name: "National University of Singapore", nameZh: "新加坡国立大学", country: "Singapore", city: "Singapore", website: "https://www.nus.edu.sg", description: "NUS is the flagship national university of Singapore and the oldest autonomous university in the country. It is consistently ranked as the top university in Asia and among the best in the world.", type: "public", foundedYear: 1905, studentCount: 38000, acceptanceRate: 25.0, avgSAT: 1380, avgACT: 30, avgIELTS: 6.5, avgTOEFL: 92, avgGPA: 3.5, tuitionDomestic: 8200, tuitionInternational: 30000, livingCost: 12000, applicationProcess: "1. Online application via NUS portal\n2. Academic transcripts\n3. Standardized test scores\n4. Personal statement\n5. Recommendations\n6. Interview (some programs)", applicationDeadlines: "February 28 (August intake)\nOctober 15 (January intake)" },
+    { name: "Tsinghua University", nameZh: "清华大学", country: "China", city: "Beijing", website: "https://www.tsinghua.edu.cn", description: "Tsinghua University is a national public research university and a member of the C9 League. Known as the 'MIT of China', it excels in engineering, computer science, and business.", type: "public", foundedYear: 1911, studentCount: 50000, acceptanceRate: 10.0, avgSAT: 1400, avgIELTS: 6.5, avgTOEFL: 90, avgGPA: 3.5, tuitionDomestic: 5000, tuitionInternational: 28000, livingCost: 8000, applicationProcess: "1. Online application\n2. Academic transcripts\n3. Language proficiency (HSK for Chinese programs, IELTS/TOEFL for English)\n4. Personal statement\n5. Two recommendation letters\n6. Interview (some programs)", applicationDeadlines: "Early: October 15\nRegular: December 1 / March 1" },
+    { name: "Peking University", nameZh: "北京大学", country: "China", city: "Beijing", website: "https://www.pku.edu.cn", description: "Peking University is a national public research university and a member of the C9 League. It is renowned for its humanities, social sciences, and natural sciences programs, as well as its beautiful campus at the former imperial gardens.", type: "public", foundedYear: 1898, studentCount: 45000, acceptanceRate: 12.0, avgSAT: 1380, avgIELTS: 6.5, avgTOEFL: 90, avgGPA: 3.4, tuitionDomestic: 5000, tuitionInternational: 26000, livingCost: 8000, applicationProcess: "1. Online application\n2. Academic transcripts\n3. Language proficiency\n4. Personal statement\n5. Two recommendation letters\n6. Interview (some programs)", applicationDeadlines: "Early: October 15\nRegular: December 1 / March 1" },
+    { name: "Yale University", nameZh: "耶鲁大学", country: "United States", city: "New Haven", state: "Connecticut", website: "https://www.yale.edu", description: "Yale University is a private Ivy League research university. It is known for its excellent law school, drama and music programs, and undergraduate liberal arts education.", type: "private", foundedYear: 1701, studentCount: 14600, acceptanceRate: 4.5, avgSAT: 1515, avgACT: 34, avgIELTS: 7.5, avgTOEFL: 100, avgGPA: 4.14, tuitionDomestic: 62250, tuitionInternational: 62250, livingCost: 18100, applicationProcess: "1. Common App or Coalition App\n2. Yale supplement essays\n3. SAT/ACT (test-optional)\n4. Two teacher recommendations\n5. Counselor recommendation\n6. School report", applicationDeadlines: "Single-Choice Early Action: November 1\nRegular Decision: January 2" },
+    { name: "Princeton University", nameZh: "普林斯顿大学", country: "United States", city: "Princeton", state: "New Jersey", website: "https://www.princeton.edu", description: "Princeton University is a private Ivy League research university. It emphasizes undergraduate education and is known for its beautiful campus, strong engineering and humanities programs.", type: "private", foundedYear: 1746, studentCount: 8800, acceptanceRate: 4.4, avgSAT: 1510, avgACT: 34, avgIELTS: 7.5, avgTOEFL: 100, avgGPA: 3.95, tuitionDomestic: 57410, tuitionInternational: 57410, livingCost: 18700, applicationProcess: "1. Common App or Coalition App\n2. Princeton supplement essays\n3. SAT/ACT (test-optional)\n4. Two teacher recommendations\n5. School report\n6. Graded written paper", applicationDeadlines: "Single-Choice Early Action: November 1\nRegular Decision: January 1" },
+    { name: "Columbia University", nameZh: "哥伦比亚大学", country: "United States", city: "New York", state: "New York", website: "https://www.columbia.edu", description: "Columbia University is a private Ivy League research university in New York City. It is the oldest institution of higher education in New York and is known for its core curriculum and location in Manhattan.", type: "private", foundedYear: 1754, studentCount: 33400, acceptanceRate: 3.9, avgSAT: 1510, avgACT: 34, avgIELTS: 7.5, avgTOEFL: 100, avgGPA: 4.12, tuitionDomestic: 65524, tuitionInternational: 65524, livingCost: 20600, applicationProcess: "1. Common App or Coalition App\n2. Columbia supplement essays\n3. SAT/ACT (test-optional)\n4. Two teacher recommendations\n5. School report", applicationDeadlines: "Early Decision: November 1\nRegular Decision: January 1" },
+    { name: "University of Pennsylvania", nameZh: "宾夕法尼亚大学", country: "United States", city: "Philadelphia", state: "Pennsylvania", website: "https://www.upenn.edu", description: "UPenn is a private Ivy League university founded by Benjamin Franklin. It is known for its Wharton School of Business, interdisciplinary approach, and strong programs across arts and sciences.", type: "private", foundedYear: 1740, studentCount: 26200, acceptanceRate: 5.9, avgSAT: 1500, avgACT: 34, avgIELTS: 7.0, avgTOEFL: 100, avgGPA: 4.0, tuitionDomestic: 58620, tuitionInternational: 58620, livingCost: 18200, applicationProcess: "1. Common App or Coalition App\n2. Penn supplement essays\n3. SAT/ACT (test-optional)\n4. Two teacher recommendations\n5. School report", applicationDeadlines: "Early Decision: November 1\nRegular Decision: January 5" },
+    { name: "University of California, Berkeley", nameZh: "加州大学伯克利分校", country: "United States", city: "Berkeley", state: "California", website: "https://www.berkeley.edu", description: "UC Berkeley is a public land-grant research university and the flagship campus of the UC system. It is known for its academic excellence, political activism, and contributions to science and technology.", type: "public", foundedYear: 1868, studentCount: 45200, acceptanceRate: 14.4, avgSAT: 1430, avgACT: 32, avgIELTS: 7.0, avgTOEFL: 90, avgGPA: 4.15, tuitionDomestic: 14400, tuitionInternational: 48000, livingCost: 18200, applicationProcess: "1. UC Application\n2. Personal insight questions\n3. SAT/ACT (not considered)\n4. Academic record\n5. Extracurricular activities", applicationDeadlines: "November 30 (Fall admission)" },
+    { name: "University of California, Los Angeles", nameZh: "加州大学洛杉矶分校", country: "United States", city: "Los Angeles", state: "California", website: "https://www.ucla.edu", description: "UCLA is a public land-grant research university and one of the most applied-to universities in the United States. It is known for its film school, medical center, and strong athletic programs.", type: "public", foundedYear: 1919, studentCount: 47600, acceptanceRate: 10.8, avgSAT: 1410, avgACT: 31, avgIELTS: 7.0, avgTOEFL: 87, avgGPA: 4.0, tuitionDomestic: 13800, tuitionInternational: 47000, livingCost: 18400, applicationProcess: "1. UC Application\n2. Personal insight questions\n3. SAT/ACT (not considered)\n4. Academic record", applicationDeadlines: "November 30 (Fall admission)" },
+    { name: "Cornell University", nameZh: "康奈尔大学", country: "United States", city: "Ithaca", state: "New York", website: "https://www.cornell.edu", description: "Cornell University is a private Ivy League and statutory land-grant research university. It offers a wide range of programs across seven undergraduate colleges and is known for its 'any person, any study' philosophy.", type: "private", foundedYear: 1865, studentCount: 25500, acceptanceRate: 8.7, avgSAT: 1480, avgACT: 33, avgIELTS: 7.0, avgTOEFL: 100, avgGPA: 4.05, tuitionDomestic: 63800, tuitionInternational: 63800, livingCost: 17000, applicationProcess: "1. Common App\n2. Cornell supplement\n3. SAT/ACT (test-optional)\n4. Two teacher recommendations\n5. School report", applicationDeadlines: "Early Decision: November 1\nRegular Decision: January 2" },
+    { name: "University of Toronto", nameZh: "多伦多大学", country: "Canada", city: "Toronto", state: "Ontario", website: "https://www.utoronto.ca", description: "The University of Toronto is a public research university and the largest university in Canada. It is known for its research output, medical school, and contributions to artificial intelligence and literature.", type: "public", foundedYear: 1827, studentCount: 93000, acceptanceRate: 43.0, avgSAT: 1350, avgACT: 30, avgIELTS: 6.5, avgTOEFL: 89, avgGPA: 3.6, tuitionDomestic: 6100, tuitionInternational: 45000, livingCost: 15000, applicationProcess: "1. OUAC application\n2. Academic transcripts\n3. English proficiency\n4. Supplemental application (some programs)\n5. Portfolio (some programs)", applicationDeadlines: "January 13 (recommended)\nRolling after" },
+    { name: "University of Melbourne", nameZh: "墨尔本大学", country: "Australia", city: "Melbourne", state: "Victoria", website: "https://www.unimelb.edu.au", description: "The University of Melbourne is a public research university and Australia's second oldest university. It is consistently ranked as Australia's top university and is known for its Melbourne Model curriculum.", type: "public", foundedYear: 1853, studentCount: 52000, acceptanceRate: 30.0, avgIELTS: 6.5, avgTOEFL: 79, avgGPA: 3.3, tuitionDomestic: 10000, tuitionInternational: 38000, livingCost: 16000, applicationProcess: "1. Online application or VTAC\n2. Academic transcripts\n3. English proficiency\n4. Personal statement\n5. Portfolio (some programs)", applicationDeadlines: "Semester 1: November 30\nSemester 2: May 31" },
+    { name: "University of Tokyo", nameZh: "东京大学", country: "Japan", city: "Tokyo", website: "https://www.u-tokyo.ac.jp", description: "The University of Tokyo is a public research university and Japan's premier national university. It is known for its research output in sciences, engineering, and humanities, and has produced numerous prime ministers and Nobel laureates.", type: "public", foundedYear: 1877, studentCount: 28200, acceptanceRate: 34.0, avgSAT: 1410, avgIELTS: 6.5, avgTOEFL: 90, avgGPA: 3.5, tuitionDomestic: 535800, tuitionInternational: 535800, livingCost: 12000, applicationProcess: "1. Online application\n2. EJU or standardized test scores\n3. Language proficiency (JLPT for Japanese programs)\n4. Academic transcripts\n5. Interview\n6. Essay", applicationDeadlines: "April admission: November\nOctober admission: March" },
+    { name: "University of Edinburgh", nameZh: "爱丁堡大学", country: "United Kingdom", city: "Edinburgh", website: "https://www.ed.ac.uk", description: "The University of Edinburgh is a public research university and one of Scotland's four ancient universities. It is known for its medical school, artificial intelligence research, and strong humanities programs.", type: "public", foundedYear: 1583, studentCount: 41000, acceptanceRate: 10.0, avgIELTS: 6.5, avgTOEFL: 92, avgGPA: 3.4, tuitionDomestic: 9250, tuitionInternational: 28950, livingCost: 13000, applicationProcess: "1. UCAS application\n2. Personal statement\n3. Academic reference\n4. Portfolio (art/design programs)\n5. Interview (some programs)", applicationDeadlines: "UCAS: January 31\nMedicine: October 15" },
+    { name: "University of Michigan", nameZh: "密歇根大学安娜堡分校", country: "United States", city: "Ann Arbor", state: "Michigan", website: "https://www.umich.edu", description: "The University of Michigan is a public research university and the flagship campus of the University of Michigan system. It is known for its engineering, business, and law programs, as well as its strong athletic tradition.", type: "public", foundedYear: 1817, studentCount: 50000, acceptanceRate: 20.0, avgSAT: 1440, avgACT: 32, avgIELTS: 7.0, avgTOEFL: 100, avgGPA: 3.9, tuitionDomestic: 17200, tuitionInternational: 56500, livingCost: 14000, applicationProcess: "1. Common App\n2. Michigan supplement\n3. SAT/ACT (test-optional)\n4. One teacher recommendation\n5. School report", applicationDeadlines: "Early Action: November 1\nRegular Decision: February 1" },
+    { name: "Northwestern University", nameZh: "西北大学", country: "United States", city: "Evanston", state: "Illinois", website: "https://www.northwestern.edu", description: "Northwestern University is a private research university known for its journalism, engineering, and performing arts programs. It has a beautiful campus on Lake Michigan and a strong quarter-based academic calendar.", type: "private", foundedYear: 1851, studentCount: 23000, acceptanceRate: 7.0, avgSAT: 1490, avgACT: 33, avgIELTS: 7.5, avgTOEFL: 100, avgGPA: 4.1, tuitionDomestic: 63468, tuitionInternational: 63468, livingCost: 18200, applicationProcess: "1. Common App or Coalition App\n2. Northwestern supplement\n3. SAT/ACT (test-optional)\n4. Two teacher recommendations\n5. School report", applicationDeadlines: "Early Decision: November 1\nRegular Decision: January 3" },
+    { name: "Duke University", nameZh: "杜克大学", country: "United States", city: "Durham", state: "North Carolina", website: "https://www.duke.edu", description: "Duke University is a private research university known for its strong programs in law, medicine, business, and public policy. It is also known for its Gothic architecture and Division I athletics.", type: "private", foundedYear: 1838, studentCount: 17200, acceptanceRate: 5.9, avgSAT: 1500, avgACT: 34, avgIELTS: 7.0, avgTOEFL: 100, avgGPA: 4.0, tuitionDomestic: 63450, tuitionInternational: 63450, livingCost: 18300, applicationProcess: "1. Common App or Coalition App\n2. Duke supplement essays\n3. SAT/ACT (test-optional)\n4. Two teacher recommendations\n5. School report", applicationDeadlines: "Early Decision: November 1\nRegular Decision: January 2" },
+    { name: "Johns Hopkins University", nameZh: "约翰霍普金斯大学", country: "United States", city: "Baltimore", state: "Maryland", website: "https://www.jhu.edu", description: "Johns Hopkins University is a private research university and America's first research university. It is renowned for its medical school, public health programs, and international studies.", type: "private", foundedYear: 1876, studentCount: 29200, acceptanceRate: 7.5, avgSAT: 1505, avgACT: 34, avgIELTS: 7.0, avgTOEFL: 100, avgGPA: 4.0, tuitionDomestic: 60480, tuitionInternational: 60480, livingCost: 17800, applicationProcess: "1. Common App or Coalition App\n2. JHU supplement\n3. SAT/ACT (test-optional)\n4. Two teacher recommendations\n5. School report", applicationDeadlines: "Early Decision I: November 1\nEarly Decision II: January 2\nRegular Decision: January 2" },
+    { name: "UCL", nameZh: "伦敦大学学院", country: "United Kingdom", city: "London", website: "https://www.ucl.ac.uk", description: "UCL is a public research university and a constituent college of the University of London. It was the first university in England to admit students regardless of religion and to admit women on equal terms.", type: "public", foundedYear: 1826, studentCount: 45000, acceptanceRate: 12.0, avgIELTS: 6.5, avgTOEFL: 92, avgGPA: 3.4, tuitionDomestic: 9250, tuitionInternational: 31200, livingCost: 16800, applicationProcess: "1. UCAS application\n2. Personal statement\n3. Academic reference\n4. Portfolio (some programs)\n5. Interview (some programs)", applicationDeadlines: "UCAS: January 31\nMedicine: October 15" },
+    { name: "University of Sydney", nameZh: "悉尼大学", country: "Australia", city: "Sydney", state: "New South Wales", website: "https://www.sydney.edu.au", description: "The University of Sydney is a public research university and Australia's oldest university. It is known for its beautiful sandstone architecture, law school, and medical programs.", type: "public", foundedYear: 1850, studentCount: 74000, acceptanceRate: 30.0, avgIELTS: 6.5, avgTOEFL: 85, avgGPA: 3.2, tuitionDomestic: 10000, tuitionInternational: 42000, livingCost: 18000, applicationProcess: "1. Online application or UAC\n2. Academic transcripts\n3. English proficiency\n4. Personal statement (some programs)\n5. Portfolio (design programs)", applicationDeadlines: "Semester 1: January 15\nSemester 2: June 25" },
+    { name: "University of British Columbia", nameZh: "英属哥伦比亚大学", country: "Canada", city: "Vancouver", state: "British Columbia", website: "https://www.ubc.ca", description: "UBC is a public research university with campuses in Vancouver and Kelowna. It is consistently ranked among the top 3 universities in Canada and is known for its sustainability initiatives and Pacific Rim location.", type: "public", foundedYear: 1908, studentCount: 66000, acceptanceRate: 52.0, avgSAT: 1320, avgACT: 29, avgIELTS: 6.5, avgTOEFL: 90, avgGPA: 3.5, tuitionDomestic: 5600, tuitionInternational: 42000, livingCost: 15500, applicationProcess: "1. Online application via UBC portal\n2. Academic transcripts\n3. English proficiency\n4. Personal profile\n5. Supplemental (some programs)", applicationDeadlines: "January 15 (Fall admission)" },
+    { name: "University of Hong Kong", nameZh: "香港大学", country: "Hong Kong", city: "Hong Kong", website: "https://www.hku.hk", description: "HKU is a public research university and the oldest tertiary institution in Hong Kong. It is consistently ranked as the most international university in the world and is known for its law, medicine, and business programs.", type: "public", foundedYear: 1911, studentCount: 30000, acceptanceRate: 20.0, avgSAT: 1350, avgACT: 30, avgIELTS: 6.5, avgTOEFL: 93, avgGPA: 3.4, tuitionDomestic: 42100, tuitionInternational: 182000, livingCost: 14000, applicationProcess: "1. Online application\n2. Academic transcripts\n3. English proficiency\n4. Personal statement\n5. Reference letters\n6. Interview (some programs)", applicationDeadlines: "Early: November 15\nMain Round: January 4\nRolling after" },
+    { name: "Seoul National University", nameZh: "首尔大学", country: "South Korea", city: "Seoul", website: "https://www.snu.ac.kr", description: "Seoul National University is a national research university and widely considered the most prestigious university in South Korea. It is known for its engineering, medicine, and business programs.", type: "public", foundedYear: 1946, studentCount: 28200, acceptanceRate: 15.0, avgSAT: 1370, avgIELTS: 6.0, avgTOEFL: 80, avgGPA: 3.3, tuitionDomestic: 6000, tuitionInternational: 12000, livingCost: 10000, applicationProcess: "1. Online application\n2. Academic transcripts\n3. Language proficiency (TOPIK for Korean)\n4. Personal statement\n5. Recommendation letters\n6. Interview (some programs)", applicationDeadlines: "Spring: September\nFall: March" },
+    { name: "New York University", nameZh: "纽约大学", country: "United States", city: "New York", state: "New York", website: "https://www.nyu.edu", description: "NYU is a private research university with its main campus in Greenwich Village, Manhattan. It is the largest private university in the U.S. and is known for its business, law, arts, and film programs.", type: "private", foundedYear: 1831, studentCount: 59000, acceptanceRate: 12.8, avgSAT: 1450, avgACT: 32, avgIELTS: 7.5, avgTOEFL: 100, avgGPA: 3.7, tuitionDomestic: 58168, tuitionInternational: 58168, livingCost: 21000, applicationProcess: "1. Common App\n2. NYU supplement\n3. SAT/ACT (test-optional)\n4. Two teacher recommendations\n5. School report", applicationDeadlines: "Early Decision I: November 1\nEarly Decision II: January 1\nRegular Decision: January 5" },
+    { name: "University of Texas at Austin", nameZh: "德克萨斯大学奥斯汀分校", country: "United States", city: "Austin", state: "Texas", website: "https://www.utexas.edu", description: "UT Austin is a public research university and the flagship campus of the UT system. It is known for its engineering, business, and computer science programs, as well as its vibrant Austin location.", type: "public", foundedYear: 1883, studentCount: 52000, acceptanceRate: 31.0, avgSAT: 1350, avgACT: 30, avgIELTS: 6.5, avgTOEFL: 79, avgGPA: 3.8, tuitionDomestic: 11800, tuitionInternational: 42000, livingCost: 13500, applicationProcess: "1. ApplyTexas or Common App\n2. Essays\n3. SAT/ACT (test-optional)\n4. Transcripts\n5. Resume (optional)", applicationDeadlines: "Priority: November 1\nRegular: December 1" },
+    { name: "University of Washington", nameZh: "华盛顿大学", country: "United States", city: "Seattle", state: "Washington", website: "https://www.washington.edu", description: "UW is a public research university and the flagship campus of the UW system. It is known for its computer science, engineering, and medical programs, and its location in the tech hub of Seattle.", type: "public", foundedYear: 1861, studentCount: 60000, acceptanceRate: 48.0, avgSAT: 1350, avgACT: 30, avgIELTS: 7.0, avgTOEFL: 76, avgGPA: 3.8, tuitionDomestic: 12300, tuitionInternational: 42000, livingCost: 15000, applicationProcess: "1. Coalition App or Common App\n2. UW supplement essays\n3. SAT/ACT (not required)\n4. Transcripts\n5. Activities list", applicationDeadlines: "November 15 (Autumn admission)" },
+    { name: "McGill University", nameZh: "麦吉尔大学", country: "Canada", city: "Montreal", state: "Quebec", website: "https://www.mcgill.ca", description: "McGill University is a public research university located in Montreal, Quebec. It is one of Canada's most prestigious universities and is known for its medical school, law faculty, and bilingual campus.", type: "public", foundedYear: 1821, studentCount: 40000, acceptanceRate: 38.0, avgSAT: 1390, avgACT: 31, avgIELTS: 6.5, avgTOEFL: 90, avgGPA: 3.6, tuitionDomestic: 2800, tuitionInternational: 35000, livingCost: 14000, applicationProcess: "1. Online application\n2. Academic transcripts\n3. English proficiency\n4. Personal statement (some programs)\n5. Letters of reference", applicationDeadlines: "January 15 (most programs)\nMarch 1 (some)" },
+    { name: "University of Manchester", nameZh: "曼彻斯特大学", country: "United Kingdom", city: "Manchester", website: "https://www.manchester.ac.uk", description: "The University of Manchester is a public research university and a member of the Russell Group. It is known for its research output in science and engineering, and for its diverse student body.", type: "public", foundedYear: 1824, studentCount: 40000, acceptanceRate: 13.0, avgIELTS: 6.0, avgTOEFL: 80, avgGPA: 3.2, tuitionDomestic: 9250, tuitionInternational: 27000, livingCost: 12000, applicationProcess: "1. UCAS application\n2. Personal statement\n3. Academic reference\n4. Portfolio (some programs)", applicationDeadlines: "UCAS: January 31\nMedicine: October 15" },
+    { name: "University of New South Wales", nameZh: "新南威尔士大学", country: "Australia", city: "Sydney", state: "New South Wales", website: "https://www.unsw.edu.au", description: "UNSW is a public research university and a founding member of the Group of Eight. It is known for its engineering, business, and law programs.", type: "public", foundedYear: 1949, studentCount: 63000, acceptanceRate: 35.0, avgIELTS: 6.5, avgTOEFL: 90, avgGPA: 3.2, tuitionDomestic: 10000, tuitionInternational: 40000, livingCost: 18000, applicationProcess: "1. Online application or UAC\n2. Academic transcripts\n3. English proficiency\n4. Personal statement (some programs)", applicationDeadlines: "Term 1: November 30\nTerm 2: March 31\nTerm 3: July 31" },
+    { name: "University of Queensland", nameZh: "昆士兰大学", country: "Australia", city: "Brisbane", state: "Queensland", website: "https://www.uq.edu.au", description: "UQ is a public research university and a founding member of the Group of Eight. It is known for its medical research, biotechnology programs, and beautiful campus on the Brisbane River.", type: "public", foundedYear: 1909, studentCount: 55000, acceptanceRate: 40.0, avgIELTS: 6.5, avgTOEFL: 87, avgGPA: 3.1, tuitionDomestic: 10000, tuitionInternational: 37000, livingCost: 15000, applicationProcess: "1. Online application or QTAC\n2. Academic transcripts\n3. English proficiency\n4. Personal statement (some programs)", applicationDeadlines: "Semester 1: November 30\nSemester 2: May 31" },
+    { name: "Australian National University", nameZh: "澳大利亚国立大学", country: "Australia", city: "Canberra", state: "ACT", website: "https://www.anu.edu.au", description: "ANU is a public research university and the only university created by the Parliament of Australia. It is consistently ranked as Australia's top university for research and is known for its programs in politics, international relations, and science.", type: "public", foundedYear: 1946, studentCount: 21000, acceptanceRate: 35.0, avgIELTS: 6.5, avgTOEFL: 80, avgGPA: 3.3, tuitionDomestic: 10000, tuitionInternational: 39000, livingCost: 16000, applicationProcess: "1. Online application\n2. Academic transcripts\n3. English proficiency\n4. Personal statement\n5. References (postgraduate)", applicationDeadlines: "Semester 1: December 15\nSemester 2: May 15" },
+    { name: "Nanyang Technological University", nameZh: "南洋理工大学", country: "Singapore", city: "Singapore", website: "https://www.ntu.edu.sg", description: "NTU is a national research university and the second-oldest autonomous university in Singapore. It is known for its engineering, business, and science programs and its beautiful garden campus.", type: "public", foundedYear: 1991, studentCount: 33000, acceptanceRate: 30.0, avgSAT: 1350, avgACT: 30, avgIELTS: 6.5, avgTOEFL: 90, avgGPA: 3.4, tuitionDomestic: 8200, tuitionInternational: 28000, livingCost: 12000, applicationProcess: "1. Online application\n2. Academic transcripts\n3. Standardized test scores\n4. Personal statement\n5. Recommendations\n6. Interview (some programs)", applicationDeadlines: "February 28 (August intake)\nOctober 15 (January intake)" },
+    { name: "King's College London", nameZh: "伦敦国王学院", country: "United Kingdom", city: "London", website: "https://www.kcl.ac.uk", description: "King's College London is a public research university and a founding college of the University of London. It is known for its law, humanities, and health sciences programs.", type: "public", foundedYear: 1829, studentCount: 33000, acceptanceRate: 13.0, avgIELTS: 6.5, avgTOEFL: 92, avgGPA: 3.3, tuitionDomestic: 9250, tuitionInternational: 28000, livingCost: 16000, applicationProcess: "1. UCAS application\n2. Personal statement\n3. Academic reference\n4. Portfolio (some programs)", applicationDeadlines: "UCAS: January 31\nMedicine: October 15" },
+    { name: "Monash University", nameZh: "莫纳什大学", country: "Australia", city: "Melbourne", state: "Victoria", website: "https://www.monash.edu", description: "Monash University is a public research university and the largest university in Australia. It is named after Sir John Monash and is known for its pharmacy, engineering, and business programs.", type: "public", foundedYear: 1958, studentCount: 86000, acceptanceRate: 45.0, avgIELTS: 6.5, avgTOEFL: 79, avgGPA: 3.0, tuitionDomestic: 10000, tuitionInternational: 37000, livingCost: 16000, applicationProcess: "1. Online application or VTAC\n2. Academic transcripts\n3. English proficiency\n4. Personal statement (some programs)", applicationDeadlines: "Semester 1: November 30\nSemester 2: May 31" },
+    { name: "Zhejiang University", nameZh: "浙江大学", country: "China", city: "Hangzhou", state: "Zhejiang", website: "https://www.zju.edu.cn", description: "Zhejiang University is a national public research university and a member of the C9 League. It is one of China's most prestigious universities and is known for its engineering and computer science programs.", type: "public", foundedYear: 1897, studentCount: 54000, acceptanceRate: 15.0, avgIELTS: 6.0, avgTOEFL: 85, avgGPA: 3.3, tuitionDomestic: 5000, tuitionInternational: 24000, livingCost: 7000, applicationProcess: "1. Online application\n2. Academic transcripts\n3. Language proficiency\n4. Personal statement\n5. Recommendations\n6. Interview (some programs)", applicationDeadlines: "Fall: May 31\nSpring: November 30" },
+    { name: "Fudan University", nameZh: "复旦大学", country: "China", city: "Shanghai", website: "https://www.fudan.edu.cn", description: "Fudan University is a national public research university and a member of the C9 League. It is known for its humanities, social sciences, medicine, and natural sciences programs.", type: "public", foundedYear: 1905, studentCount: 34000, acceptanceRate: 16.0, avgIELTS: 6.0, avgTOEFL: 85, avgGPA: 3.3, tuitionDomestic: 5000, tuitionInternational: 24000, livingCost: 9000, applicationProcess: "1. Online application\n2. Academic transcripts\n3. Language proficiency\n4. Personal statement\n5. Two recommendation letters\n6. Interview (some programs)", applicationDeadlines: "Fall: May 31\nSpring: November 30" },
+    { name: "Brown University", nameZh: "布朗大学", country: "United States", city: "Providence", state: "Rhode Island", website: "https://www.brown.edu", description: "Brown University is a private Ivy League research university known for its Open Curriculum, which allows students to design their own course of study without general education requirements.", type: "private", foundedYear: 1764, studentCount: 10700, acceptanceRate: 5.1, avgSAT: 1500, avgACT: 34, avgIELTS: 8.0, avgTOEFL: 100, avgGPA: 4.08, tuitionDomestic: 65146, tuitionInternational: 65146, livingCost: 17900, applicationProcess: "1. Common App\n2. Brown supplement essays\n3. SAT/ACT (test-optional)\n4. Two teacher recommendations\n5. School report", applicationDeadlines: "Early Decision: November 1\nRegular Decision: January 3" },
+    { name: "Dartmouth College", nameZh: "达特茅斯学院", country: "United States", city: "Hanover", state: "New Hampshire", website: "https://www.dartmouth.edu", description: "Dartmouth College is a private Ivy League research university known for its undergraduate focus, strong liberal arts curriculum, and the D-Plan (quarter system with flexible scheduling).", type: "private", foundedYear: 1769, studentCount: 6600, acceptanceRate: 6.2, avgSAT: 1500, avgACT: 33, avgIELTS: 7.0, avgTOEFL: 100, avgGPA: 4.06, tuitionDomestic: 62430, tuitionInternational: 62430, livingCost: 18000, applicationProcess: "1. Common App\n2. Dartmouth supplement essays\n3. SAT/ACT (test-optional)\n4. Two teacher recommendations\n5. Counselor recommendation\n6. Peer recommendation", applicationDeadlines: "Early Decision: November 1\nRegular Decision: January 2" },
+    { name: "University of Wisconsin-Madison", nameZh: "威斯康星大学麦迪逊分校", country: "United States", city: "Madison", state: "Wisconsin", website: "https://www.wisc.edu", description: "UW-Madison is a public land-grant research university and the flagship campus of the UW system. It is known for its research output, engineering, and life sciences programs.", type: "public", foundedYear: 1848, studentCount: 49000, acceptanceRate: 54.0, avgSAT: 1380, avgACT: 30, avgIELTS: 6.5, avgTOEFL: 80, avgGPA: 3.8, tuitionDomestic: 10900, tuitionInternational: 40600, livingCost: 13000, applicationProcess: "1. Common App or UW application\n2. Essays\n3. SAT/ACT (test-optional)\n4. One teacher recommendation\n5. School report", applicationDeadlines: "Early Action: November 1\nRegular Decision: January 15" },
   ];
 
   for (const uni of universities) {
-    const created = await prisma.university.create({ data: uni });
-    console.log(`  📚 ${created.nameZh || created.name}`);
+    await prisma.university.create({ data: uni });
   }
+  console.log("Universities created: " + universities.length);
 
-  // Add rankings
+  // Rankings
   const allUnis = await prisma.university.findMany();
-  const rankingData = [
-    { name: "Harvard University", qs: 4, usnews: 1 },
-    { name: "Massachusetts Institute of Technology", qs: 1, usnews: 2 },
-    { name: "Stanford University", qs: 5, usnews: 3 },
-    { name: "University of Oxford", qs: 3, usnews: 5 },
-    { name: "University of Cambridge", qs: 2, usnews: 8 },
-    { name: "Tsinghua University", qs: 25, usnews: 23 },
-    { name: "Peking University", qs: 17, usnews: 39 },
-    { name: "University of Toronto", qs: 21, usnews: 18 },
-    { name: "University of Melbourne", qs: 14, usnews: 27 },
-    { name: "ETH Zurich", qs: 7, usnews: 29 },
-  ];
+  const rankingMap: Record<string, { qs: number; usnews: number }> = {
+    "Massachusetts Institute of Technology": { qs: 1, usnews: 2 },
+    "University of Cambridge": { qs: 2, usnews: 8 },
+    "University of Oxford": { qs: 3, usnews: 5 },
+    "Harvard University": { qs: 4, usnews: 1 },
+    "Stanford University": { qs: 5, usnews: 3 },
+    "Imperial College London": { qs: 6, usnews: 13 },
+    "ETH Zurich": { qs: 7, usnews: 29 },
+    "National University of Singapore": { qs: 8, usnews: 26 },
+    "UCL": { qs: 9, usnews: 12 },
+    "University of California, Berkeley": { qs: 10, usnews: 4 },
+    "University of Chicago": { qs: 11, usnews: 6 },
+    "University of Pennsylvania": { qs: 12, usnews: 15 },
+    "Cornell University": { qs: 13, usnews: 21 },
+    "University of Melbourne": { qs: 14, usnews: 27 },
+    "California Institute of Technology": { qs: 15, usnews: 9 },
+    "Yale University": { qs: 16, usnews: 11 },
+    "Peking University": { qs: 17, usnews: 39 },
+    "Princeton University": { qs: 18, usnews: 16 },
+    "University of New South Wales": { qs: 19, usnews: 37 },
+    "University of Sydney": { qs: 20, usnews: 28 },
+    "University of Toronto": { qs: 21, usnews: 18 },
+    "University of Edinburgh": { qs: 22, usnews: 34 },
+    "Columbia University": { qs: 23, usnews: 7 },
+    "Tsinghua University": { qs: 25, usnews: 23 },
+    "University of Hong Kong": { qs: 26, usnews: 55 },
+    "University of Tokyo": { qs: 28, usnews: 81 },
+    "Johns Hopkins University": { qs: 29, usnews: 10 },
+    "University of Michigan": { qs: 30, usnews: 17 },
+    "McGill University": { qs: 31, usnews: 54 },
+    "Northwestern University": { qs: 32, usnews: 24 },
+    "University of Manchester": { qs: 33, usnews: 63 },
+    "Duke University": { qs: 34, usnews: 22 },
+    "University of British Columbia": { qs: 35, usnews: 35 },
+    "University of California, Los Angeles": { qs: 36, usnews: 14 },
+    "Australian National University": { qs: 37, usnews: 62 },
+    "King's College London": { qs: 38, usnews: 33 },
+    "New York University": { qs: 39, usnews: 31 },
+    "Seoul National University": { qs: 41, usnews: 129 },
+    "Nanyang Technological University": { qs: 42, usnews: 30 },
+    "Monash University": { qs: 43, usnews: 40 },
+    "University of Queensland": { qs: 44, usnews: 36 },
+    "Zhejiang University": { qs: 45, usnews: 93 },
+    "Fudan University": { qs: 50, usnews: 116 },
+    "Brown University": { qs: 51, usnews: 101 },
+    "University of Texas at Austin": { qs: 52, usnews: 43 },
+    "Dartmouth College": { qs: 53, usnews: 176 },
+    "University of Washington": { qs: 54, usnews: 6 },
+    "University of Wisconsin-Madison": { qs: 55, usnews: 39 },
+  };
 
-  for (const rd of rankingData) {
-    const uni = allUnis.find((u) => u.name === rd.name);
-    if (uni) {
+  for (const uni of allUnis) {
+    const ranks = rankingMap[uni.name];
+    if (ranks) {
       await prisma.ranking.createMany({
         data: [
-          { universityId: uni.id, rank: rd.qs, year: 2024, source: "QS" },
-          { universityId: uni.id, rank: rd.usnews, year: 2024, source: "US_NEWS" },
+          { universityId: uni.id, rank: ranks.qs, year: 2025, source: "QS" },
+          { universityId: uni.id, rank: ranks.usnews, year: 2025, source: "US_NEWS" },
         ],
       });
     }
   }
-  console.log("✅ Rankings added");
+  console.log("Rankings added");
 
-  // Create majors
-  const majorsData = [
-    { uniName: "Harvard University", majors: ["Computer Science", "Economics", "Psychology", "Political Science", "Biology"] },
-    { uniName: "Massachusetts Institute of Technology", majors: ["Computer Science", "Electrical Engineering", "Mechanical Engineering", "Physics", "Mathematics"] },
-    { uniName: "Stanford University", majors: ["Computer Science", "Business", "Engineering", "Biology", "Psychology"] },
-    { uniName: "University of Oxford", majors: ["Law", "Medicine", "Philosophy, Politics and Economics", "English Literature", "Mathematics"] },
-    { uniName: "University of Cambridge", majors: ["Natural Sciences", "Engineering", "Mathematics", "Economics", "Law"] },
-  ];
+  // Majors for top universities
+  const majorMappings: Record<string, string[]> = {
+    "Harvard University": ["Computer Science", "Economics", "Psychology", "Political Science", "Biology", "Mathematics", "Physics", "History", "English", "Chemistry"],
+    "Massachusetts Institute of Technology": ["Computer Science", "Electrical Engineering", "Mechanical Engineering", "Physics", "Mathematics", "Chemical Engineering", "Aerospace Engineering", "Biology"],
+    "Stanford University": ["Computer Science", "Business", "Engineering", "Biology", "Psychology", "Economics", "Political Science", "Mathematics"],
+    "University of Oxford": ["Law", "Medicine", "PPE", "English Literature", "Mathematics", "Physics", "Economics", "History", "Computer Science"],
+    "University of Cambridge": ["Natural Sciences", "Engineering", "Mathematics", "Economics", "Law", "Computer Science", "Medicine", "History"],
+  };
 
-  for (const md of majorsData) {
-    const uni = allUnis.find((u) => u.name === md.uniName);
+  for (const [uniName, majors] of Object.entries(majorMappings)) {
+    const uni = allUnis.find((u) => u.name === uniName);
     if (uni) {
-      for (const majorName of md.majors) {
+      for (const m of majors) {
         await prisma.major.create({
           data: {
-            name: majorName,
+            name: m,
             universityId: uni.id,
-            category: majorName.includes("Computer") || majorName.includes("Engineering") ? "Engineering" : "Arts",
+            category: ["Computer Science", "Electrical Engineering", "Mechanical Engineering", "Engineering", "Chemical Engineering", "Aerospace Engineering"].includes(m) ? "Engineering" : "Arts & Sciences",
             degreeLevel: "Bachelor",
           },
         });
       }
     }
   }
-  console.log("✅ Majors added");
+  console.log("Majors added");
 
-  // Create test categories and questions
+  // Test categories
   const testCategories = [
-    {
-      name: "SAT",
-      description: "SAT (Scholastic Assessment Test) 是美国大学入学标准化考试",
-      questions: [
-        {
-          section: "Reading",
-          questionText: "The author's tone in the passage can best be described as:",
-          optionA: "Analytical and objective",
-          optionB: "Emotional and biased",
-          optionC: "Humorous and lighthearted",
-          optionD: "Critical and dismissive",
-          correctAnswer: "A",
-          explanation: "The passage presents facts and evidence in a balanced way without emotional language.",
-          difficulty: "medium",
-        },
-        {
-          section: "Math",
-          questionText: "If 3x + 7 = 22, what is the value of x?",
-          optionA: "3",
-          optionB: "5",
-          optionC: "7",
-          optionD: "15",
-          correctAnswer: "B",
-          explanation: "3x + 7 = 22 → 3x = 15 → x = 5",
-          difficulty: "easy",
-        },
-        {
-          section: "Writing",
-          questionText: "Choose the best option to complete the sentence: The committee _____ divided on the issue.",
-          optionA: "are",
-          optionB: "is",
-          optionC: "were",
-          optionD: "have been",
-          correctAnswer: "B",
-          explanation: "'Committee' is a collective noun that takes a singular verb when referring to the group as a unit.",
-          difficulty: "medium",
-        },
-      ],
-    },
-    {
-      name: "IELTS",
-      description: "IELTS (International English Language Testing System) 是国际英语语言测试系统",
-      questions: [
-        {
-          section: "Reading",
-          questionText: "According to the passage, what is the main cause of climate change?",
-          optionA: "Natural weather cycles",
-          optionB: "Human activities releasing greenhouse gases",
-          optionC: "Solar radiation changes",
-          optionD: "Volcanic eruptions",
-          correctAnswer: "B",
-          explanation: "The passage clearly states that human activities, particularly the burning of fossil fuels, are the primary driver of climate change.",
-          difficulty: "easy",
-        },
-        {
-          section: "Listening",
-          questionText: "What time does the library close on Saturdays?",
-          optionA: "5:00 PM",
-          optionB: "6:00 PM",
-          optionC: "7:00 PM",
-          optionD: "8:00 PM",
-          correctAnswer: "B",
-          explanation: "The speaker mentions that the library closes at 6:00 PM on weekends.",
-          difficulty: "easy",
-        },
-      ],
-    },
-    {
-      name: "TOEFL",
-      description: "TOEFL (Test of English as a Foreign Language) 是英语作为外语的测试",
-      questions: [
-        {
-          section: "Reading",
-          questionText: "The word 'ubiquitous' in paragraph 2 is closest in meaning to:",
-          optionA: "Rare",
-          optionB: "Everywhere",
-          optionC: "Mysterious",
-          optionD: "Dangerous",
-          correctAnswer: "B",
-          explanation: "'Ubiquitous' means present, appearing, or found everywhere.",
-          difficulty: "medium",
-        },
-        {
-          section: "Listening",
-          questionText: "What is the professor's main point about photosynthesis?",
-          optionA: "It only occurs in plants",
-          optionB: "It converts light energy to chemical energy",
-          optionC: "It is a very slow process",
-          optionD: "It requires high temperatures",
-          correctAnswer: "B",
-          explanation: "The professor emphasizes that photosynthesis converts light energy into chemical energy stored in glucose.",
-          difficulty: "medium",
-        },
-      ],
-    },
-    {
-      name: "ACT",
-      description: "ACT (American College Testing) 是美国大学入学考试",
-      questions: [
-        {
-          section: "English",
-          questionText: "Choose the best revision: Walking to the store, the rain started to fall.",
-          optionA: "Walking to the store, the rain started to fall.",
-          optionB: "While I was walking to the store, the rain started to fall.",
-          optionC: "The rain started to fall walking to the store.",
-          optionD: "To the store walking, the rain started to fall.",
-          correctAnswer: "B",
-          explanation: "The original sentence has a dangling modifier. Option B correctly identifies who was walking.",
-          difficulty: "medium",
-        },
-        {
-          section: "Math",
-          questionText: "What is the area of a circle with radius 6?",
-          optionA: "12π",
-          optionB: "18π",
-          optionC: "36π",
-          optionD: "72π",
-          correctAnswer: "C",
-          explanation: "Area = πr² = π × 6² = 36π",
-          difficulty: "easy",
-        },
-        {
-          section: "Science",
-          questionText: "Based on the data, which variable had the strongest correlation with plant growth?",
-          optionA: "Temperature",
-          optionB: "Light exposure",
-          optionC: "Water amount",
-          optionD: "Soil pH",
-          correctAnswer: "B",
-          explanation: "The graph shows the steepest slope for light exposure vs plant growth.",
-          difficulty: "medium",
-        },
-      ],
-    },
+    { name: "SAT", description: "SAT (Scholastic Assessment Test) is a standardized test for U.S. college admissions." },
+    { name: "IELTS", description: "IELTS (International English Language Testing System) tests English proficiency." },
+    { name: "TOEFL", description: "TOEFL (Test of English as a Foreign Language) measures English proficiency for non-native speakers." },
+    { name: "ACT", description: "ACT (American College Testing) is a standardized test for U.S. college admissions." },
   ];
 
+  const questions: Record<string, any[]> = {
+    SAT: [
+      { section: "Reading", questionText: "The author's tone in the passage can best be described as:", optionA: "Analytical and objective", optionB: "Emotional and biased", optionC: "Humorous and lighthearted", optionD: "Critical and dismissive", correctAnswer: "A", explanation: "The passage presents facts and evidence in a balanced way without emotional language.", difficulty: "medium" },
+      { section: "Math", questionText: "If 3x + 7 = 22, what is the value of x?", optionA: "3", optionB: "5", optionC: "7", optionD: "15", correctAnswer: "B", explanation: "3x + 7 = 22, 3x = 15, x = 5", difficulty: "easy" },
+      { section: "Writing", questionText: "Choose the best option: The committee _____ divided on the issue.", optionA: "are", optionB: "is", optionC: "were", optionD: "have been", correctAnswer: "B", explanation: "Committee is a collective noun that takes a singular verb when referring to the group as a unit.", difficulty: "medium" },
+    ],
+    IELTS: [
+      { section: "Reading", questionText: "According to the passage, what is the main cause of climate change?", optionA: "Natural weather cycles", optionB: "Human activities releasing greenhouse gases", optionC: "Solar radiation changes", optionD: "Volcanic eruptions", correctAnswer: "B", explanation: "The passage clearly states that human activities are the primary driver.", difficulty: "easy" },
+      { section: "Listening", questionText: "What time does the library close on Saturdays?", optionA: "5:00 PM", optionB: "6:00 PM", optionC: "7:00 PM", optionD: "8:00 PM", correctAnswer: "B", difficulty: "easy" },
+    ],
+    TOEFL: [
+      { section: "Reading", questionText: "The word 'ubiquitous' in paragraph 2 is closest in meaning to:", optionA: "Rare", optionB: "Everywhere", optionC: "Mysterious", optionD: "Dangerous", correctAnswer: "B", explanation: "Ubiquitous means present, appearing, or found everywhere.", difficulty: "medium" },
+      { section: "Listening", questionText: "What is the professor's main point about photosynthesis?", optionA: "It only occurs in plants", optionB: "It converts light energy to chemical energy", optionC: "It is a very slow process", optionD: "It requires high temperatures", correctAnswer: "B", difficulty: "medium" },
+    ],
+    ACT: [
+      { section: "English", questionText: "Choose the best revision: Walking to the store, the rain started to fall.", optionA: "Walking to the store, the rain started to fall.", optionB: "While I was walking to the store, the rain started to fall.", optionC: "The rain started to fall walking to the store.", optionD: "To the store walking, the rain started to fall.", correctAnswer: "B", explanation: "The original has a dangling modifier. Option B correctly identifies who was walking.", difficulty: "medium" },
+      { section: "Math", questionText: "What is the area of a circle with radius 6?", optionA: "12pi", optionB: "18pi", optionC: "36pi", optionD: "72pi", correctAnswer: "C", explanation: "Area = pi*r^2 = pi*36 = 36pi", difficulty: "easy" },
+    ],
+  };
+
   for (const cat of testCategories) {
-    const category = await prisma.testCategory.create({
-      data: { name: cat.name, description: cat.description },
-    });
-    for (const q of cat.questions) {
-      await prisma.testQuestion.create({
-        data: { ...q, categoryId: category.id },
-      });
+    const category = await prisma.testCategory.create({ data: { name: cat.name, description: cat.description } });
+    for (const q of questions[cat.name] || []) {
+      await prisma.testQuestion.create({ data: { ...q, categoryId: category.id } });
     }
   }
-  console.log("✅ Test questions added");
+  console.log("Test questions added");
 
-  console.log("\n🎉 Seeding complete!");
-  console.log("\n📋 Test accounts:");
+  console.log("\nSeeding complete!");
+  console.log("\nTest accounts:");
   console.log("  Admin:   admin@upath.com / admin123");
   console.log("  Teacher: teacher@upath.com / teacher123");
   console.log("  Student: student@upath.com / student123");
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().catch((e) => { console.error(e); process.exit(1); }).finally(async () => { await prisma.$disconnect(); });

@@ -23,7 +23,7 @@ const EVENT_TYPES: Record<string, { label: string; color: string }> = {
 };
 
 export default function CalendarPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const { toast } = useToast();
   const [events, setEvents] = useState<any[]>([]);
@@ -37,6 +37,11 @@ export default function CalendarPage() {
   }, []);
 
   useEffect(() => { fetchEvents(); }, [fetchEvents]);
+
+  if (status === "loading") {
+    return <div className="flex items-center justify-center min-h-[50vh]"><p className="text-gray-500">Loading...</p></div>;
+  }
+  if (status === "unauthenticated") { router.push("/login"); return null; }
 
   const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
   const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
