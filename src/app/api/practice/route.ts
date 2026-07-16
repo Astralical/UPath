@@ -9,24 +9,35 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const category = searchParams.get("category");
+  const setId = searchParams.get("setId");
 
+  // Return test sets for a category
+  if (category && !setId && searchParams.get("sets") === "true") {
+    const cat = await prisma.testCategory.findFirst({ where: { name: category } });
+    if (!cat) return NextResponse.json([], { status: 404 });
+    const sets = await prisma.testSet.findMany({
+      where: { categoryId: cat.id },
+      orderBy: [{ year: "desc" }, { month: "desc" }],
+      include: { _count: { select: { questions: true } } },
+    });
+    return NextResponse.json(sets);
+  }
+
+  // Return categories
   if (!category) {
-    const categories = await prisma.testCategory.findMany();
+    const categories = await prisma.testCategory.findMany({
+      include: { _count: { select: { sets: true } } },
+    });
     return NextResponse.json(categories);
   }
 
-  const cat = await prisma.testCategory.findFirst({
-    where: { name: category },
-  });
+  // Return questions for a specific set or category
+  const cat = await prisma.testCategory.findFirst({ where: { name: category } });
+  if (!cat) return NextResponse.json([], { status: 404 });
 
-  if (!cat) {
-    return NextResponse.json([], { status: 404 });
-  }
+  const where: any = { categoryId: cat.id };
+  if (setId) where.setId = setId;
 
-  const questions = await prisma.testQuestion.findMany({
-    where: { categoryId: cat.id },
-    take: 20,
-  });
-
+  const questions = await prisma.testQuestion.findMany({ where, take: 50 });
   return NextResponse.json(questions);
 }

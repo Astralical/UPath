@@ -11,7 +11,10 @@ export async function GET() {
   const attempts = await prisma.testAttempt.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
-    take: 20,
+    take: 50,
+    include: {
+      testSet: { select: { name: true } },
+    },
   });
   return NextResponse.json(attempts);
 }
@@ -32,6 +35,7 @@ export async function POST(req: Request) {
     data: {
       userId,
       categoryId: cat.id,
+      setId: body.setId || null,
       totalQuestions: body.totalQuestions,
       correctCount: body.correctCount,
       score: body.score,

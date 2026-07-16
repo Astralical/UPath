@@ -233,12 +233,28 @@ model TestCategory {
   createdAt   DateTime @default(now())
 
   questions TestQuestion[]
+  sets      TestSet[]
+  attempts  TestAttempt[]
+}
+
+model TestSet {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  categoryId  String
+  year        Int?
+  month       String?
+  createdAt   DateTime @default(now())
+
+  category  TestCategory   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  questions TestQuestion[]
   attempts  TestAttempt[]
 }
 
 model TestQuestion {
   id            String   @id @default(cuid())
   categoryId    String
+  setId         String?
   section       String?
   questionText  String
   optionA       String?
@@ -253,22 +269,25 @@ model TestQuestion {
   createdAt     DateTime @default(now())
 
   category TestCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  testSet  TestSet?     @relation(fields: [setId], references: [id])
 }
 
 model TestAttempt {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   userId         String
   categoryId     String
+  setId          String?
   score          Int?
   totalQuestions Int
   correctCount   Int
   answers        String
-  startedAt      DateTime @default(now())
+  startedAt      DateTime  @default(now())
   completedAt    DateTime?
-  createdAt      DateTime @default(now())
+  createdAt      DateTime  @default(now())
 
   user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   category TestCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  testSet  TestSet?     @relation(fields: [setId], references: [id])
 }
 
 model Assignment {
