@@ -26,9 +26,9 @@ export async function GET() {
     const adminPassword = await bcrypt.hash("admin123", 12);
     const teacherPassword = await bcrypt.hash("teacher123", 12);
     const studentPassword = await bcrypt.hash("student123", 12);
-    await prisma.$executeRawUnsafe(`INSERT INTO "User" (id, name, email, password, role) VALUES (gen_random_uuid()::text, 'System Admin', 'admin@upath.com', $1, 'ADMIN') ON CONFLICT (email) DO UPDATE SET password=$1`, adminPassword);
-    await prisma.$executeRawUnsafe(`INSERT INTO "User" (id, name, email, password, role) VALUES (gen_random_uuid()::text, 'Zhang Laoshi', 'teacher@upath.com', $1, 'TEACHER') ON CONFLICT (email) DO UPDATE SET password=$1`, teacherPassword);
-    await prisma.$executeRawUnsafe(`INSERT INTO "User" (id, name, email, password, role) VALUES (gen_random_uuid()::text, 'Xiao Ming', 'student@upath.com', $1, 'STUDENT') ON CONFLICT (email) DO UPDATE SET password=$1`, studentPassword);
+    await prisma.$executeRawUnsafe(`INSERT INTO "User" (id, name, email, password, role, "createdAt", "updatedAt") VALUES (gen_random_uuid()::text, 'System Admin', 'admin@upath.com', $1, 'ADMIN', NOW(), NOW()) ON CONFLICT (email) DO UPDATE SET password=$1`, adminPassword);
+    await prisma.$executeRawUnsafe(`INSERT INTO "User" (id, name, email, password, role, "createdAt", "updatedAt") VALUES (gen_random_uuid()::text, 'Zhang Laoshi', 'teacher@upath.com', $1, 'TEACHER', NOW(), NOW()) ON CONFLICT (email) DO UPDATE SET password=$1`, teacherPassword);
+    await prisma.$executeRawUnsafe(`INSERT INTO "User" (id, name, email, password, role, "createdAt", "updatedAt") VALUES (gen_random_uuid()::text, 'Xiao Ming', 'student@upath.com', $1, 'STUDENT', NOW(), NOW()) ON CONFLICT (email) DO UPDATE SET password=$1`, studentPassword);
 
     // Universities & majors & rankings — batch with raw SQL
     let uniCount = 0;
